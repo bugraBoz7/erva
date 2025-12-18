@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Erva ❤️</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #000;
+  overflow: hidden;
+  touch-action: manipulation;
+}
+canvas {
+  display: block;
+}
+</style>
+</head>
+<body>
+
+<canvas id="c"></canvas>
+
+<script>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener("resize", resize);
+
+const hearts = [];
+const text = "ERVA";
+let points = [];
+
+/* KALP ÇİZ */
+function drawHeart(x, y, s, a) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(s, s);
+  ctx.rotate(-Math.PI / 4);
+  ctx.globalAlpha = a;
+  ctx.fillStyle = "#ff4d6d";
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.bezierCurveTo(-1, -1, -2, 1, 0, 2);
+  ctx.bezierCurveTo(2, 1, 1, -1, 0, 0);
+  ctx.fill();
+  ctx.restore();
+}
+
+/* ERVA NOKTALARI */
+function createTextPoints() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle = "white";
+  ctx.font = "bold 180px Arial";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(text, canvas.width/2, canvas.height/2);
+
+  const data = ctx.getImageData(0,0,canvas.width,canvas.height).data;
+  points = [];
+  for (let y = 0; y < canvas.height; y += 6) {
+    for (let x = 0; x < canvas.width; x += 6) {
+      if (data[(y * canvas.width + x) * 4 + 3] > 150) {
+        points.push({x, y});
+      }
+    }
+  }
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+}
+createTextPoints();
+
+/* KALP OLUŞTUR */
+points.forEach(p => {
+  hearts.push({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    tx: p.x,
+    ty: p.y,
+    s: Math.random() * 3 + 2,
+    a: 1
+  });
+});
+
+/* ANİMASYON */
+function animate() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  hearts.forEach(h => {
+    h.x += (h.tx - h.x) * 0.05;
+    h.y += (h.ty - h.y) * 0.05;
+    drawHeart(h.x, h.y, h.s, h.a);
+  });
+
+  requestAnimationFrame(animate);
+}
+animate();
+
+/* DOKUNUNCA PATLAMA */
+function burst(x,y) {
+  for (let i=0;i<20;i++) {
+    hearts.push({
+      x, y,
+      tx: Math.random()*canvas.width,
+      ty: Math.random()*canvas.height,
+      s: Math.random()*3+2,
+      a: 0.8
+    });
+  }
+}
+
+canvas.addEventListener("click", e => burst(e.clientX, e.clientY));
+canvas.addEventListener("touchstart", e => {
+  const t = e.touches[0];
+  burst(t.clientX, t.clientY);
+});
+</script>
+
+</body>
+</html>
